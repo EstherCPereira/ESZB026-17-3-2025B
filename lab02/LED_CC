@@ -1,0 +1,69 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <unistd.h>  // Para sleep()
+
+
+using namespace std;
+
+
+void write_sysfs(const string& path, const string& value) {
+   ofstream fs(path);
+   if (!fs.is_open()) {
+       cerr << "Erro ao abrir o arquivo: " << path << endl;
+       exit(1);
+   }
+   fs << value;
+   fs.close();
+}
+
+
+void export_gpio(int gpio) {
+   write_sysfs("/sys/class/gpio/export", to_string(gpio));
+}
+
+
+void unexport_gpio(int gpio) {
+   write_sysfs("/sys/class/gpio/unexport", to_string(gpio));
+}
+
+
+void set_direction(int gpio, const string& direction) {
+   string path = "/sys/class/gpio/gpio" + to_string(gpio) + "/direction";
+   write_sysfs(path, direction);
+}
+
+
+void write_value(int gpio, int value) {
+   string path = "/sys/class/gpio/gpio" + to_string(gpio) + "/value";
+   write_sysfs(path, to_string(value));
+}
+
+
+void acender_led(int gpio, int duration) {
+   export_gpio(gpio);
+   set_direction(gpio, "out");
+   write_value(gpio, 1);
+   sleep(duration);
+   write_value(gpio, 0);
+   unexport_gpio(gpio);
+}
+
+
+int main() {
+   for (int i = 0; i < 5; i++) {
+       // LED vermelho - GPIO 20
+       acender_led(20, 2);
+
+
+       // LED verde - GPIO 21
+       acender_led(21, 1);
+
+
+       // LED amarelo - GPIO 16
+       acender_led(16, 1);
+   }
+
+
+   return 0;
+}
